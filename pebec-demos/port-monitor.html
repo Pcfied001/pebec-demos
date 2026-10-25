@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Port Corridor Monitor (PEBEC demo)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F7F5;--s:#fff;--ink:#13261D;--mu:#566860;--ln:#D6E0DA;--g:#0B6E4F;--gs:#DDF0E7;--am:#B97A00;--ams:#FBEFD2;--r:#B3261E;--h:"Bricolage Grotesque","Trebuchet MS",sans-serif;--b:"Public Sans",system-ui,"Segoe UI",sans-serif;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1914;--s:#16251E;--ink:#E6F0EA;--mu:#9BB0A5;--ln:#2A3E34;--g:#4CC38F;--gs:#17382B;--am:#E5B04A;--ams:#3A2F12;--r:#F08A82;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E1914;--s:#16251E;--ink:#E6F0EA;--mu:#9BB0A5;--ln:#2A3E34;--g:#4CC38F;--gs:#17382B;--am:#E5B04A;--ams:#3A2F12;--r:#F08A82;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--b)}
+.w{max-width:860px;margin:0 auto;padding:28px 18px 48px}
+h1{font:700 clamp(28px,6vw,40px)/1.08 var(--h);margin:0 0 10px}h2{font:600 20px var(--h);margin:0 0 12px}
+.flag{display:inline-block;margin-bottom:14px;padding:3px 10px;border:1px solid var(--ln);border-radius:99px;font-size:13px;color:var(--mu);background:var(--s)}
+.lead,.mu{color:var(--mu)}.lead{max-width:60ch;margin:0 0 22px}.mu{font-size:14px}
+.seg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.seg button{font:500 15px var(--b);padding:8px 15px;border:1px solid var(--ln);border-radius:99px;background:var(--s);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--g);border-color:var(--g);color:#fff}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{color:#06130D}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{color:#06130D}}
+button:focus-visible{outline:3px solid var(--g);outline-offset:2px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{border:1px solid var(--ln);background:var(--s);border-radius:8px;padding:12px}.stat b{display:block;font:700 26px var(--h)}.stat span{font-size:13px;color:var(--mu)}
+.p{background:var(--s);border:1px solid var(--ln);border-radius:10px;padding:20px;margin-bottom:18px}
+svg{width:100%;height:auto;display:block}
+.inc{list-style:none;margin:0;padding:0}
+.inc li{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--ln)}
+.inc li:last-child{border:0}.inc .d{font-size:13px;color:var(--mu)}
+.tag{font-size:12px;font-weight:600;padding:2px 10px;border-radius:99px;background:var(--ams);color:var(--am);white-space:nowrap}.tag.ok{background:var(--gs);color:var(--g)}
+.go{font:600 13px var(--b);background:none;border:1px solid var(--g);color:var(--g);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+@media (max-width:600px){.stats{grid-template-columns:1fr}}
+</style></head><body><div class="w"><p style="margin:0 0 16px"><a href="index.html" style="color:var(--green,var(--g));font-weight:600">&larr; All tools</a></p>
+<span class="flag">Demo with sample data. Not live port figures.</span>
+<h1>Is the port corridor moving?</h1>
+<p class="lead">Track how many trucks are waiting near each port, what has changed since clean-up operations, and which bottlenecks are still open.</p>
+<div class="seg" id="port" role="group" aria-label="Port"></div>
+<div class="seg" id="span" role="group" aria-label="Period"></div>
+<div class="stats" id="stats"></div>
+<div class="p"><h2 id="ct">Trucks waiting</h2><div id="chart"></div></div>
+<div class="p"><h2>Bottlenecks and enforcement</h2><ul class="inc" id="inc"></ul></div>
+<p class="mu">Built by Faruk, Head of IT, Simitex.ng, as a demonstration. All counts and incidents are made-up examples to show how live data could be displayed.</p>
+</div>
+<script>
+function $(i){return document.getElementById(i)}
+function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+var P={"Apapa":{base:130,swing:40},"Tin Can":{base:85,swing:30}};
+var port="Apapa",span=14;
+function series(p,n){var o=[],c=P[p];for(var i=0;i<n;i++){var wave=Math.sin(i*1.3+(p==="Apapa"?0:2))*c.swing*.5;var trend=(i-n)*1.6;o.push(Math.max(10,Math.round(c.base+wave+trend+((i*37)%11))))}return o}
+var INC=[
+{p:"Apapa",t:"Trucks parked on the access road",d:"3 days ago",open:true},
+{p:"Apapa",t:"Broken-down trailer blocking one lane",d:"6 days ago",open:false},
+{p:"Tin Can",t:"No call-up system at the gate",d:"2 days ago",open:true},
+{p:"Tin Can",t:"Illegal roadside holding area cleared",d:"9 days ago",open:false},
+{p:"Apapa",t:"Unofficial payment demanded at checkpoint",d:"11 days ago",open:false}];
+function mkSeg(el,items,get,set){$(el).innerHTML=items.map(function(x){return'<button type="button" aria-pressed="'+(get()==x[0])+'" data-v="'+esc(String(x[0]))+'">'+esc(x[1])+'</button>'}).join("");
+ $(el).onclick=function(e){var v=e.target.dataset&&e.target.dataset.v;if(v==null)return;set(v);draw()}}
+function draw(){
+ mkSeg("port",[["Apapa","Apapa"],["Tin Can","Tin Can"]],function(){return port},function(v){port=v});
+ mkSeg("span",[[7,"Last 7 days"],[14,"Last 14 days"]],function(){return span},function(v){span=+v});
+ var all=series(port,14),s=all.slice(14-span),last=s[s.length-1],first=s[0],ch=Math.round((last-first)/first*100);
+ var inc=INC.filter(function(x){return x.p===port});
+ $("stats").innerHTML=[[last,"trucks waiting now"],[(ch>0?"+":"")+ch+"%","change over "+span+" days"],[inc.filter(function(x){return x.open}).length,"open bottlenecks"]].map(function(x){return'<div class="stat"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>'}).join("");
+ $("ct").textContent="Trucks waiting near "+port;
+ var W=640,H=220,L=36,B=26,mx=Math.max.apply(null,s)+20,pts=s.map(function(v,i){return[L+i*(W-L-10)/(s.length-1),10+(1-v/mx)*(H-B-10)]});
+ var g="";[0,.5,1].forEach(function(f){var y=10+f*(H-B-10);g+='<line x1="'+L+'" x2="'+(W-10)+'" y1="'+y+'" y2="'+y+'" stroke="var(--ln)"/><text x="4" y="'+(y+4)+'" font-size="11" fill="var(--mu)">'+Math.round(mx*(1-f))+'</text>'});
+ var line=pts.map(function(p){return p.join(",")}).join(" ");
+ $("chart").innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Trucks waiting near '+esc(port)+' over the last '+span+' days">'+g
+ +'<polygon points="'+L+','+(H-B)+' '+line+' '+(W-10)+','+(H-B)+'" fill="var(--g)" opacity=".12"/><polyline points="'+line+'" fill="none" stroke="var(--g)" stroke-width="3" stroke-linejoin="round"/>'
+ +'<circle cx="'+pts[pts.length-1][0]+'" cy="'+pts[pts.length-1][1]+'" r="5" fill="var(--g)"/>'
+ +'<text x="'+L+'" y="'+(H-6)+'" font-size="11" fill="var(--mu)">'+span+' days ago</text><text x="'+(W-10)+'" y="'+(H-6)+'" font-size="11" text-anchor="end" fill="var(--mu)">Today</text></svg>';
+ $("inc").innerHTML=inc.map(function(x,i){var k=INC.indexOf(x);return'<li><div>'+esc(x.t)+'<div class="d">'+esc(x.d)+'</div></div>'+(x.open?'<span style="display:flex;gap:8px;align-items:center"><span class="tag">Open</span><button class="go" type="button" data-k="'+k+'">Mark cleared</button></span>':'<span class="tag ok">Cleared</span>')+'</li>'}).join("");
+ $("inc").onclick=function(e){var k=e.target.dataset&&e.target.dataset.k;if(k==null)return;INC[k].open=false;draw()};
+}
+draw();
+</script></body></html>

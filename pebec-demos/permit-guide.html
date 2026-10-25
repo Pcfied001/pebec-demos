@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Permit and Registration Guide (PEBEC demo)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F7F5;--s:#fff;--ink:#13261D;--mu:#566860;--ln:#D6E0DA;--g:#0B6E4F;--gs:#DDF0E7;--h:"Bricolage Grotesque","Trebuchet MS",sans-serif;--b:"Public Sans",system-ui,"Segoe UI",sans-serif;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1914;--s:#16251E;--ink:#E6F0EA;--mu:#9BB0A5;--ln:#2A3E34;--g:#4CC38F;--gs:#17382B;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E1914;--s:#16251E;--ink:#E6F0EA;--mu:#9BB0A5;--ln:#2A3E34;--g:#4CC38F;--gs:#17382B;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--b)}
+.w{max-width:760px;margin:0 auto;padding:28px 18px 48px}
+h1{font:700 clamp(28px,6vw,40px)/1.08 var(--h);margin:0 0 10px}h2{font:600 20px var(--h);margin:0 0 10px}
+.flag{display:inline-block;margin-bottom:14px;padding:3px 10px;border:1px solid var(--ln);border-radius:99px;font-size:13px;color:var(--mu);background:var(--s)}
+.lead,.mu{color:var(--mu)}.lead{max-width:60ch;margin:0 0 22px}.mu{font-size:14px}
+.types{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.types button{font:500 15px var(--b);padding:9px 15px;border:1px solid var(--ln);border-radius:99px;background:var(--s);color:var(--ink);cursor:pointer}
+.types button[aria-pressed="true"]{background:var(--g);border-color:var(--g);color:#fff}
+:root[data-theme="dark"] .types button[aria-pressed="true"]{color:#06130D}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .types button[aria-pressed="true"]{color:#06130D}}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--g);outline-offset:2px}
+.prog{margin-bottom:18px}.prog .t{height:10px;background:var(--ln);border-radius:99px;overflow:hidden;margin-top:6px}.prog .t span{display:block;height:100%;background:var(--g);transition:width .25s}
+ol{list-style:none;margin:0;padding:0;border-left:2px solid var(--ln);margin-left:10px}
+li{position:relative;padding:0 0 18px 28px}
+li input{position:absolute;left:-11px;top:3px;width:20px;height:20px;accent-color:var(--g);cursor:pointer}
+li label{display:block;cursor:pointer}li .nm{font-weight:600}li.done .nm{text-decoration:line-through;color:var(--mu)}
+li .ag{display:inline-block;font-size:13px;font-weight:600;color:var(--g);background:var(--gs);border-radius:99px;padding:1px 10px;margin:2px 0 4px}
+li p{margin:0;font-size:15px;color:var(--mu)}
+.note{background:var(--s);border:1px solid var(--ln);border-radius:8px;padding:12px 14px;font-size:14px;margin-top:8px}
+a{color:var(--g);font-weight:600}
+</style></head><body><div class="w"><p style="margin:0 0 16px"><a href="index.html" style="color:var(--green,var(--g));font-weight:600">&larr; All tools</a></p>
+<span class="flag">Demo. Steps are illustrative, so confirm with each agency.</span>
+<h1>What do I need to start operating?</h1>
+<p class="lead">Choose your kind of business to see the registrations and approvals it usually involves, and tick them off as you go.</p>
+<div class="types" id="types" role="group" aria-label="Business type"></div>
+<div id="out"></div>
+<div class="note">Something taking too long or being charged unofficially? <a href="complaint-tracker.html">Report it in the complaint tracker</a>.</div>
+<p class="mu" style="margin-top:22px">Built by Faruk, Head of IT, Simitex.ng, as a demonstration. Requirements, fees and timelines change and differ by state, so this guide lists steps only and is not official advice.</p>
+</div>
+<script>
+function $(i){return document.getElementById(i)}
+function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+var BASE=[["Register the business","CAC","Reserve a name and register the company, business name or other entity type."],["Get a tax identification number","FIRS","Register for tax and, if your sales qualify, VAT."],["Get local operating permits","State and local government","Business premises, signage and similar permits are issued locally and vary by state."]];
+var T={
+"Food manufacturer":[["Register your products","NAFDAC","Packaged food generally needs product registration and a facility inspection."],["Meet product standards","SON","Check whether your product or packaging falls under mandatory standards."]],
+"Import and export business":[["Get customs clearance set up","Nigeria Customs","Register to import or export, or work with a licensed clearing agent."],["Arrange port access","Nigerian Ports Authority","Understand port procedures, charges and access rules before your first shipment."],["Check standards on imports","SON","Many imported goods need conformity assessment before clearance."]],
+"Solar installer":[["Check product standards","SON","Panels, inverters and batteries you sell or fit may need to meet standards."],["Check environmental requirements","Environmental regulator","Large installations and waste from batteries may need an environmental approval."],["Check energy-sector licensing","Electricity regulator","Some sizes and models of solar supply need a permit or registration."]],
+"Retail shop":[["Register your shop premises","State and local government","Confirm any shop, trade or market permit for your location."]],
+"Tech startup":[["Register as a data handler if needed","Data protection regulator","Businesses that process personal data may need to register and follow data rules."],["Check sector licences","Sector regulator","Fintech, health and telecoms products often need a licence from their own regulator."]]};
+var cur=null,ticks={};
+$("types").innerHTML=Object.keys(T).map(function(k){return'<button type="button" aria-pressed="false" data-k="'+esc(k)+'">'+esc(k)+'</button>'}).join("");
+$("types").onclick=function(e){var k=e.target.dataset&&e.target.dataset.k;if(!k)return;cur=k;
+ document.querySelectorAll("#types button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.k===k)});draw()};
+function draw(){
+ if(!cur){$("out").innerHTML='<p class="mu">Pick a business type above to see your checklist.</p>';return}
+ var s=BASE.concat(T[cur]);ticks[cur]=ticks[cur]||{};
+ var d=s.filter(function(x,i){return ticks[cur][i]}).length;
+ $("out").innerHTML='<h2>'+esc(cur)+': '+s.length+' steps</h2><div class="prog"><span class="mu">'+d+' of '+s.length+' done</span><div class="t"><span style="width:'+(d/s.length*100)+'%"></span></div></div><ol>'
+ +s.map(function(x,i){return'<li class="'+(ticks[cur][i]?"done":"")+'"><input type="checkbox" id="c'+i+'" data-i="'+i+'"'+(ticks[cur][i]?" checked":"")+'><label for="c'+i+'"><span class="nm">'+esc(x[0])+'</span><br><span class="ag">'+esc(x[1])+'</span><p>'+esc(x[2])+'</p></label></li>'}).join("")+'</ol>';
+ $("out").onchange=function(e){var i=e.target.dataset&&e.target.dataset.i;if(i==null)return;ticks[cur][i]=e.target.checked;draw();var c=$("c"+i);if(c)c.focus()};
+}
+draw();
+</script></body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>State Reform Dashboard (PEBEC demo)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F7F5;--s:#fff;--ink:#13261D;--mu:#566860;--ln:#D6E0DA;--g:#0B6E4F;--gs:#DDF0E7;--am:#B97A00;--r:#B3261E;--h:"Bricolage Grotesque","Trebuchet MS",sans-serif;--b:"Public Sans",system-ui,"Segoe UI",sans-serif;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1914;--s:#16251E;--ink:#E6F0EA;--mu:#9BB0A5;--ln:#2A3E34;--g:#4CC38F;--gs:#17382B;--am:#E5B04A;--r:#F08A82;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E1914;--s:#16251E;--ink:#E6F0EA;--mu:#9BB0A5;--ln:#2A3E34;--g:#4CC38F;--gs:#17382B;--am:#E5B04A;--r:#F08A82;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--b)}
+.w{max-width:900px;margin:0 auto;padding:28px 18px 48px}
+h1{font:700 clamp(28px,6vw,40px)/1.08 var(--h);margin:0 0 10px}h2{font:600 20px var(--h);margin:0 0 12px}
+.flag{display:inline-block;margin-bottom:14px;padding:3px 10px;border:1px solid var(--ln);border-radius:99px;font-size:13px;color:var(--mu);background:var(--s)}
+.lead{color:var(--mu);max-width:60ch;margin:0 0 22px}
+.p{background:var(--s);border:1px solid var(--ln);border-radius:10px;padding:20px;margin-bottom:18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{border:1px solid var(--ln);background:var(--s);border-radius:8px;padding:12px}.stat b{display:block;font:700 22px var(--h)}.stat span{font-size:13px;color:var(--mu)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--ln);border-radius:6px;padding:9px 11px}
+input,select{min-width:180px}textarea{width:100%;min-height:90px}
+.btn{font:600 15px var(--b);background:var(--g);color:#fff;border:0;border-radius:6px;padding:10px 18px;cursor:pointer}
+:root[data-theme="dark"] .btn{color:#06130D}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#06130D}}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--g);outline-offset:2px}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--ln)}th{color:var(--mu);font-weight:600}.n{text-align:right}
+.meter{display:inline-block;width:120px;height:9px;background:var(--ln);border-radius:99px;vertical-align:middle;margin-right:8px;overflow:hidden}.meter span{display:block;height:100%;background:var(--g)}
+.meter.lo span{background:var(--am)}
+.err{color:var(--r);font-size:14px;margin-top:8px}small,.mu{color:var(--mu);font-size:13px}
+@media (max-width:600px){.stats{grid-template-columns:1fr}}
+</style></head><body><div class="w"><p style="margin:0 0 16px"><a href="index.html" style="color:var(--green,var(--g));font-weight:600">&larr; All tools</a></p>
+<span class="flag" id="flag">Demo with placeholder scores. Not real rankings.</span>
+<h1>How business-friendly is each state?</h1>
+<p class="lead">Compare states on land administration, regulatory processes and investment promotion, then sort by any area. Paste in real scores at the bottom and the whole page updates.</p>
+<div class="stats" id="stats"></div>
+<div class="p">
+<div class="bar"><div><label class="mu" for="by">Rank by</label><br><select id="by"></select></div><div><label class="mu" for="q">Find a state</label><br><input id="q" placeholder="e.g. Kano"></div></div>
+<div class="sc"><table><thead><tr><th>#</th><th>State</th><th>Score</th><th class="n">Land</th><th class="n">Regulatory</th><th class="n">Investment</th></tr></thead><tbody id="rows"></tbody></table></div>
+</div>
+<div class="p"><h2>Load real scores</h2>
+<p class="mu" style="margin-top:0">One state per line: state, land, regulatory, investment (scores out of 100).</p>
+<textarea id="csv" aria-label="Scores as CSV" placeholder="Kano, 72, 65, 80&#10;Lagos, 81, 70, 88"></textarea>
+<div style="margin-top:10px"><button class="btn" id="load" type="button">Load scores</button> <button class="btn" id="reset" type="button" style="background:none;color:var(--g);border:1px solid var(--g)">Back to placeholders</button></div><div class="err" id="err" role="alert"></div></div>
+<p class="mu">Built by Faruk, Head of IT, Simitex.ng, as a demonstration. Scores are generated placeholders, not assessments of any state.</p>
+</div>
+<script>
+var N="Abia,Adamawa,Akwa Ibom,Anambra,Bauchi,Bayelsa,Benue,Borno,Cross River,Delta,Ebonyi,Edo,Ekiti,Enugu,FCT,Gombe,Imo,Jigawa,Kaduna,Kano,Katsina,Kebbi,Kogi,Kwara,Lagos,Nasarawa,Niger,Ogun,Ondo,Osun,Oyo,Plateau,Rivers,Sokoto,Taraba,Yobe,Zamfara".split(",");
+var K=["Overall","Land administration","Regulatory processes","Investment promotion"];
+function $(i){return document.getElementById(i)}
+function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function avg(a){return Math.round(a.reduce(function(x,y){return x+y},0)/a.length)}
+function sample(){return N.map(function(n,i){return{n:n,s:[0,1,2].map(function(k){return 38+((i*37+k*53+i*i*7)%58)})}})}
+var D=sample();
+$("by").innerHTML=K.map(function(k,i){return'<option value="'+i+'">'+k+'</option>'}).join("");
+function val(d,k){return k==0?avg(d.s):d.s[k-1]}
+function draw(){
+ var k=+$("by").value,q=$("q").value.trim().toLowerCase();
+ var r=D.slice().sort(function(a,b){return val(b,k)-val(a,k)});
+ r.forEach(function(d,i){d.r=i+1});
+ var all=r.map(function(d){return val(d,0)}),top=r[0],bot=r[r.length-1];
+ $("stats").innerHTML=[[top.n,"highest on "+K[k].toLowerCase()],[bot.n,"lowest on "+K[k].toLowerCase()],[(val(top,k)-val(bot,k))+" points","gap between them"]].map(function(x){return'<div class="stat"><b>'+esc(x[0])+'</b><span>'+x[1]+'</span></div>'}).join("");
+ $("rows").innerHTML=r.filter(function(d){return d.n.toLowerCase().indexOf(q)>-1}).map(function(d){var v=val(d,k);
+  return'<tr><td>'+d.r+'</td><td>'+esc(d.n)+'</td><td><span class="meter'+(v<55?" lo":"")+'"><span style="width:'+v+'%"></span></span>'+v+'</td><td class="n">'+d.s[0]+'</td><td class="n">'+d.s[1]+'</td><td class="n">'+d.s[2]+'</td></tr>'}).join("")||'<tr><td colspan="6">No state matches “'+esc(q)+'”.</td></tr>';
+}
+$("by").onchange=draw;$("q").oninput=draw;
+$("load").onclick=function(){
+ var out=[],bad=0;
+ $("csv").value.split("\n").forEach(function(l){if(!l.trim())return;var p=l.split(",").map(function(x){return x.trim()});var s=p.slice(1,4).map(Number);
+  if(p.length<4||s.some(function(x){return isNaN(x)||x<0||x>100}))bad++;else out.push({n:p[0],s:s})});
+ if(!out.length||bad){$("err").textContent=bad?bad+" line(s) need a state plus three scores from 0 to 100.":"Paste at least one line.";return}
+ $("err").textContent="";D=out;$("flag").textContent="Custom scores loaded";draw();
+};
+$("reset").onclick=function(){D=sample();$("flag").textContent="Demo with placeholder scores. Not real rankings.";$("err").textContent="";draw()};
+draw();
+</script></body></html>

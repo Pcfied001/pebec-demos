@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Business Complaint Tracker (PEBEC demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F7F5;--surface:#FFFFFF;--ink:#13261D;--muted:#566860;--line:#D6E0DA;--green:#0B6E4F;--green-soft:#DDF0E7;--amber:#B97A00;--amber-soft:#FBEFD2;--red:#B3261E;--red-soft:#FADDDA;
+--head:"Bricolage Grotesque","Trebuchet MS",sans-serif;--body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1914;--surface:#16251E;--ink:#E6F0EA;--muted:#9BB0A5;--line:#2A3E34;--green:#4CC38F;--green-soft:#17382B;--amber:#E5B04A;--amber-soft:#3A2F12;--red:#F08A82;--red-soft:#3D1B18;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E1914;--surface:#16251E;--ink:#E6F0EA;--muted:#9BB0A5;--line:#2A3E34;--green:#4CC38F;--green-soft:#17382B;--amber:#E5B04A;--amber-soft:#3A2F12;--red:#F08A82;--red-soft:#3D1B18;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--body)}
+.wrap{max-width:860px;margin:0 auto;padding:28px 18px 48px}
+header h1{font:700 clamp(28px,6vw,42px)/1.08 var(--head);margin:0 0 10px;letter-spacing:-.01em}
+header p{margin:0;color:var(--muted);max-width:56ch}
+.flag{display:inline-block;margin-bottom:14px;padding:3px 10px;border:1px solid var(--line);border-radius:99px;font-size:13px;color:var(--muted);background:var(--surface)}
+nav{display:flex;gap:6px;margin:26px 0 18px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{font:500 15px var(--body);background:none;border:0;color:var(--muted);padding:10px 14px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--ink);border-color:var(--green)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.chip:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px}
+.panel[hidden]{display:none}
+h2{font:600 22px/1.2 var(--head);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.full{grid-column:1/-1}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:5px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+textarea{min-height:110px;resize:vertical}
+.btn{font:600 15px var(--body);background:var(--green);color:#fff;border:0;border-radius:6px;padding:11px 20px;cursor:pointer}
+:root[data-theme="dark"] .btn{color:#06130D}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#06130D}}
+.btn.ghost{background:none;color:var(--green);border:1px solid var(--green)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row .grow{flex:1;min-width:200px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;font-size:14px;color:var(--muted);align-items:center}
+.chip{font:500 13px var(--body);border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:99px;padding:4px 11px;cursor:pointer}
+.notice{margin-top:16px;padding:14px 16px;border-radius:8px;background:var(--green-soft)}
+.notice strong{font:700 20px var(--head);letter-spacing:.02em}
+.case-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;margin-bottom:6px}
+.case-head h3{font:700 24px var(--head);margin:0}
+.badge{font-size:13px;font-weight:600;padding:3px 11px;border-radius:99px}
+.b-ok{background:var(--green-soft);color:var(--green)}.b-wait{background:var(--amber-soft);color:var(--amber)}.b-late{background:var(--red-soft);color:var(--red)}
+.meta{color:var(--muted);font-size:14px;margin:0 0 20px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);margin:6px 0 24px}
+.step{position:relative;text-align:center;font-size:13px;color:var(--muted);padding-top:26px}
+.step::before{content:"";position:absolute;top:7px;left:0;right:0;height:3px;background:var(--line)}
+.step:first-child::before{left:50%}.step:last-child::before{right:50%}
+.step i{position:absolute;top:0;left:50%;margin-left:-9px;width:18px;height:18px;border-radius:50%;background:var(--surface);border:3px solid var(--line);z-index:1}
+.step.done{color:var(--ink)}.step.done::before{background:var(--green)}.step.done i{background:var(--green);border-color:var(--green)}
+.step.now i{box-shadow:0 0 0 4px var(--green-soft)}
+.sla{margin-bottom:22px}
+.sla .bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:6px 0}
+.sla .bar span{display:block;height:100%;border-radius:99px}
+.sla small{color:var(--muted)}
+ol.log{list-style:none;margin:0 0 18px;padding:0;border-left:2px solid var(--line)}
+ol.log li{padding:0 0 12px 16px;position:relative;font-size:15px}
+ol.log li::before{content:"";position:absolute;left:-6px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--green)}
+ol.log time{color:var(--muted);font-size:13px;display:block}
+.desc{background:var(--bg);border-radius:8px;padding:12px 14px;font-size:15px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:12px}
+.stat b{display:block;font:700 28px var(--head)}.stat span{font-size:13px;color:var(--muted)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+th{font-weight:600;color:var(--muted)}
+td.num,th.num{text-align:right}
+.mini{display:inline-block;width:90px;height:8px;background:var(--line);border-radius:99px;vertical-align:middle;margin-right:6px;overflow:hidden}
+.mini span{display:block;height:100%;background:var(--green)}
+.link{background:none;border:0;color:var(--green);font:600 14px var(--body);cursor:pointer;padding:0;text-decoration:underline}
+.err{color:var(--red);margin-top:10px;font-size:14px}
+footer{margin-top:28px;font-size:13px;color:var(--muted)}
+@media (max-width:600px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.panel{padding:16px}}
+@media (prefers-reduced-motion:no-preference){.notice{animation:pop .3s ease-out}@keyframes pop{from{transform:translateY(4px);opacity:0}}}
+</style>
+</head>
+<body>
+<div class="wrap"><p style="margin:0 0 16px"><a href="index.html" style="color:var(--green,var(--g));font-weight:600">&larr; All tools</a></p>
+<header>
+<span class="flag">Demo with sample data. Not an official PEBEC service.</span>
+<h1>Report a business problem. Follow it until it’s fixed.</h1>
+<p>Delays, unclear requirements or unofficial charges from a government agency: log it once, get a reference number, and see who has it and how long it has taken.</p>
+</header>
+<nav role="tablist" aria-label="Sections">
+<button role="tab" id="t-report" aria-selected="true" data-tab="report">Report a problem</button>
+<button role="tab" id="t-track" aria-selected="false" data-tab="track">Track a complaint</button>
+<button role="tab" id="t-over" aria-selected="false" data-tab="over">Overview</button>
+</nav>
+
+<section class="panel" id="report" role="tabpanel" aria-labelledby="t-report">
+<h2>What went wrong?</h2>
+<form id="f" class="grid" onsubmit="return false">
+<div><label for="biz">Business name</label><input id="biz" required autocomplete="organization"></div>
+<div><label for="mail">Email or phone for updates</label><input id="mail" required autocomplete="email"></div>
+<div><label for="ag">Agency involved</label><select id="ag"></select></div>
+<div><label for="cat">Type of problem</label><select id="cat"></select></div>
+<div class="full"><label for="st">State</label><select id="st"></select></div>
+<div class="full"><label for="ds">What happened?</label><textarea id="ds" required placeholder="Say what you applied for, when, and what response you got."></textarea></div>
+<div class="full"><button class="btn" id="send" type="button">Submit complaint</button><div class="err" id="ferr" role="alert"></div></div>
+</form>
+<div id="done"></div>
+</section>
+
+<section class="panel" id="track" role="tabpanel" aria-labelledby="t-track" hidden>
+<h2>Where is my complaint?</h2>
+<div class="row"><div class="grow"><label for="ref">Reference number</label><input id="ref" placeholder="PEB-2026-0142"></div><button class="btn" id="go" type="button">Check status</button></div>
+<div class="chips"><span>Try a sample:</span><span id="samples"></span></div>
+<div id="case" style="margin-top:22px"></div>
+</section>
+
+<section class="panel" id="over" role="tabpanel" aria-labelledby="t-over" hidden>
+<h2>How agencies are doing</h2>
+<div class="stats" id="stats"></div>
+<div class="scroll"><table><thead><tr><th>Agency</th><th class="num">Complaints</th><th class="num">Still open</th><th>Resolved</th><th class="num">Avg days to resolve</th></tr></thead><tbody id="ag-rows"></tbody></table></div>
+<h2 style="margin-top:26px">Past the 30-day target</h2>
+<div id="late"></div>
+</section>
+<footer>Built by Faruk, Head of IT, Simitex.ng, as a demonstration. All complaints shown are made-up examples; anything you submit stays in your own browser.</footer>
+</div>
+
+<script>
+var AG=["CAC","FIRS","Nigeria Customs","NAFDAC","Nigerian Ports Authority","SON","State land registry"];
+var CAT=["Registration delay","Permit or licence delay","Unofficial charges","Port or clearance delay","Unclear requirements","Other"];
+var ST="Abia,Adamawa,Akwa Ibom,Anambra,Bauchi,Bayelsa,Benue,Borno,Cross River,Delta,Ebonyi,Edo,Ekiti,Enugu,FCT,Gombe,Imo,Jigawa,Kaduna,Kano,Katsina,Kebbi,Kogi,Kwara,Lagos,Nasarawa,Niger,Ogun,Ondo,Osun,Oyo,Plateau,Rivers,Sokoto,Taraba,Yobe,Zamfara".split(",");
+var STEPS=["Received","Sent to agency","Under review","Resolved"];
+var SLA=30,DAY=864e5,NOW=Date.now();
+function $(i){return document.getElementById(i)}
+function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function fmt(t){return new Date(t).toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"})}
+function mk(n,b,a,c,s,ago,stage,res,d){return{ref:"PEB-2026-"+n,biz:b,ag:a,cat:c,st:s,desc:d,filed:NOW-ago*DAY,stage:stage,res:res||null,ev:[]}}
+var seed=[
+mk("0142","Amina Textiles","CAC","Registration delay","Kano",12,2,0,"Name reservation approved but certificate not issued after two follow-ups."),
+mk("0138","Okoro Foods Ltd","NAFDAC","Permit or licence delay","Anambra",27,2,0,"Product registration inspection promised in week one, still not scheduled."),
+mk("0131","Lagos Freight Co","Nigeria Customs","Port or clearance delay","Lagos",41,1,0,"Container held with no written reason for release delay."),
+mk("0125","Zaria Solar Works","FIRS","Unclear requirements","Kaduna",18,3,9,"Two offices gave different lists of documents for tax clearance."),
+mk("0119","Bright Agro","State land registry","Permit or licence delay","Plateau",33,3,26,"Title search stalled for a farm lease."),
+mk("0150","Delta Cold Chain","Nigerian Ports Authority","Unofficial charges","Delta",3,0,0,"Asked for cash payments not on the published tariff."),
+mk("0147","Kano Leather Hub","SON","Permit or licence delay","Kano",6,1,0,"Product certification application unacknowledged."),
+mk("0112","Ibadan Print House","CAC","Registration delay","Oyo",52,3,14,"Annual returns portal rejected a valid filing.")];
+var OFF=[0,1,3];
+seed.forEach(function(c){for(var i=0;i<=c.stage;i++){var off=i===3?c.res:OFF[i];c.ev.push({t:c.filed+off*DAY,x:["Complaint received and logged","Sent to "+c.ag+" focal officer","Agency started review","Marked resolved"][i]})}});
+var mine=[];try{mine=JSON.parse(localStorage.getItem("pebec-demo-mine")||"[]")}catch(e){}
+function all(){return mine.concat(seed)}
+function save(){try{localStorage.setItem("pebec-demo-mine",JSON.stringify(mine))}catch(e){}}
+function days(c){return Math.floor(((c.stage===3?c.ev[c.ev.length-1].t:Date.now())-c.filed)/DAY)}
+function late(c){return c.stage<3&&days(c)>SLA}
+function opts(el,a){$(el).innerHTML=a.map(function(x){return"<option>"+esc(x)+"</option>"}).join("")}
+opts("ag",AG);opts("cat",CAT);opts("st",ST);$("st").value="FCT";
+
+function tab(n){["report","track","over"].forEach(function(k){$(k).hidden=k!==n;$("t-"+k).setAttribute("aria-selected",k===n)});if(n==="over")over()}
+document.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){tab(b.dataset.tab)}});
+
+$("send").onclick=function(){
+ var b=$("biz").value.trim(),m=$("mail").value.trim(),d=$("ds").value.trim();
+ if(!b||!m||!d){$("ferr").textContent="Please fill in your business name, contact and what happened.";return}
+ $("ferr").textContent="";
+ var n=("0000"+(151+mine.length)).slice(-4),t=Date.now();
+ var c={ref:"PEB-2026-"+n,biz:b,ag:$("ag").value,cat:$("cat").value,st:$("st").value,desc:d,filed:t,stage:0,res:null,ev:[{t:t,x:"Complaint received and logged"}]};
+ mine.unshift(c);save();
+ $("done").innerHTML='<div class="notice">Complaint logged. Your reference number is<br><strong>'+esc(c.ref)+'</strong><p style="margin:8px 0 12px">Keep it to check progress. '+esc(c.ag)+' has '+SLA+' days to respond.</p><button class="btn ghost" id="tr" type="button">Track this complaint</button></div>';
+ $("tr").onclick=function(){show(c.ref)};
+ $("f").reset();$("st").value="FCT";
+};
+
+$("samples").innerHTML=seed.slice(0,4).map(function(c){return'<button class="chip" type="button" data-r="'+c.ref+'">'+c.ref+'</button>'}).join(" ");
+$("samples").onclick=function(e){var r=e.target.dataset&&e.target.dataset.r;if(r)show(r)};
+$("go").onclick=function(){show($("ref").value)};
+$("ref").onkeydown=function(e){if(e.key==="Enter")show($("ref").value)};
+
+function show(r){
+ tab("track");r=(r||"").trim().toUpperCase();$("ref").value=r;
+ var c=all().filter(function(x){return x.ref===r})[0];
+ if(!c){$("case").innerHTML='<div class="err">No complaint found for “'+esc(r)+'”. Check the number and try again.</div>';return}
+ var d=days(c),pct=Math.min(d/SLA,1)*100,col=c.stage===3?"var(--green)":d>SLA?"var(--red)":d>20?"var(--amber)":"var(--green)";
+ var badge=c.stage===3?'<span class="badge b-ok">Resolved</span>':late(c)?'<span class="badge b-late">Past 30-day target</span>':'<span class="badge b-wait">In progress</span>';
+ var sla=c.stage===3?"Resolved in "+d+" days":"Day "+d+" of "+SLA;
+ $("case").innerHTML='<div class="case-head"><h3>'+esc(c.ref)+'</h3>'+badge+'</div>'
+ +'<p class="meta">'+esc(c.biz)+' &middot; '+esc(c.ag)+' &middot; '+esc(c.st)+' &middot; filed '+fmt(c.filed)+'</p>'
+ +'<div class="steps">'+STEPS.map(function(s,i){return'<div class="step'+(i<=c.stage?" done":"")+(i===c.stage?" now":"")+'"><i></i>'+s+'</div>'}).join("")+'</div>'
+ +'<div class="sla"><strong>'+sla+'</strong><div class="bar"><span style="width:'+pct+'%;background:'+col+'"></span></div><small>Target: agency responds within '+SLA+' days</small></div>'
+ +'<div class="desc"><strong>'+esc(c.cat)+'.</strong> '+esc(c.desc)+'</div>'
+ +'<ol class="log">'+c.ev.map(function(e){return'<li><time>'+fmt(e.t)+'</time>'+esc(e.x)+'</li>'}).join("")+'</ol>'
+ +(c.stage<3?'<button class="btn ghost" id="adv" type="button">Demo: move to next stage</button>':"");
+ var a=$("adv");if(a)a.onclick=function(){
+  c.stage++;c.ev.push({t:Date.now(),x:["","Sent to "+c.ag+" focal officer","Agency started review","Marked resolved"][c.stage]});
+  if(c.stage===3)c.res=days(c);save();show(c.ref)};
+}
+
+function over(){
+ var a=all(),res=a.filter(function(c){return c.stage===3}),lt=a.filter(late);
+ var avg=res.length?Math.round(res.reduce(function(s,c){return s+days(c)},0)/res.length):0;
+ $("stats").innerHTML=[[a.length,"complaints logged"],[a.length-res.length,"still open"],[avg+" days","average to resolve"],[lt.length,"past 30-day target"]].map(function(x){return'<div class="stat"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>'}).join("");
+ $("ag-rows").innerHTML=AG.map(function(n){
+  var g=a.filter(function(c){return c.ag===n});if(!g.length)return"";
+  var r=g.filter(function(c){return c.stage===3}),av=r.length?Math.round(r.reduce(function(s,c){return s+days(c)},0)/r.length):"-";
+  return'<tr><td>'+esc(n)+'</td><td class="num">'+g.length+'</td><td class="num">'+(g.length-r.length)+'</td><td><span class="mini"><span style="width:'+Math.round(r.length/g.length*100)+'%"></span></span>'+r.length+'/'+g.length+'</td><td class="num">'+av+'</td></tr>'}).join("");
+ $("late").innerHTML=lt.length?'<ul style="padding-left:18px;margin:0">'+lt.map(function(c){return'<li>'+esc(c.biz)+', '+esc(c.ag)+': '+days(c)+' days. <button class="link" type="button" data-r="'+c.ref+'">View '+c.ref+'</button></li>'}).join("")+'</ul>':"<p>Nothing is past its target.</p>";
+ $("late").onclick=function(e){var r=e.target.dataset&&e.target.dataset.r;if(r)show(r)};
+}
+</script>
+</body>
+</html>
